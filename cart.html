@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Smart Bite | Cart</title>
+</head>
+<body class="bg-[#F7F9FB]">
+
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div class="flex items-center gap-3">
+        <img src="/assets/logo.png " alt="logo" class="w-10 h-10 rounded-md" />
+        <span class="text-xl font-semibold text-gray-800">Smart Canteen</span>
+      </div>
+      <nav class="flex items-center gap-6 text-gray-700">
+        <a href="menu.html" class="hover:text-gray-900">Menu</a>
+        <a href="index.html">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold mb-4">Your Cart</h1>
+
+    <div id="cartArea" class="space-y-4"></div>
+
+    <div class="mt-6 bg-white p-6 rounded-2xl shadow-md max-w-md">
+      <div class="flex justify-between mb-2">
+        <span class="text-lg font-medium">Subtotal</span>
+        <span id="subtotal" class="text-lg font-semibold">₹0</span>
+      </div>
+      <div class="flex justify-between text-gray-500 mb-4">
+        <span>GST (5%)</span>
+        <span id="gst">₹0</span>
+      </div>
+
+      <div class="flex justify-between font-bold text-xl">
+        <span>Total</span>
+        <span id="total">₹0</span>
+      </div>
+
+      <div class="mt-6">
+        <a id="checkoutBtn" href="payment.html" class="block text-center bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600">Proceed to Payment</a>
+      </div>
+    </div>
+  </main>
+
+<script>
+function renderCart(){
+  const area = document.getElementById('cartArea');
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if(cart.length === 0){
+    area.innerHTML = '<div class="bg-white p-6 rounded-xl shadow-md text-center text-gray-600">Your cart is empty. Go to <a href="menu.html" class="text-orange-500 underline">Menu</a>.</div>';
+    updateTotals();
+    return;
+  }
+
+  area.innerHTML = cart.map((c, idx) => `
+    <div class="bg-white rounded-2xl shadow-md p-4 flex gap-4 items-center">
+      <img src="${c.img}" alt="${c.name}" class="w-28 h-20 object-cover rounded-md" />
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold">${c.name}</h3>
+        <p class="text-gray-600">₹${c.price} × ${c.qty}</p>
+      </div>
+      <div class="flex flex-col items-end gap-2">
+        <div class="flex items-center gap-2">
+          <button onclick="changeQty(${idx}, -1)" class="w-8 h-8 bg-gray-100 rounded-md">-</button>
+          <span class="font-semibold">${c.qty}</span>
+          <button onclick="changeQty(${idx}, 1)" class="w-8 h-8 bg-gray-100 rounded-md">+</button>
+        </div>
+        <button onclick="removeItem(${idx})" class="text-red-600 text-sm">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  updateTotals();
+}
+
+function changeQty(i, delta){
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  cart[i].qty += delta;
+  if(cart[i].qty < 1) cart[i].qty = 1;
+  localStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function removeItem(i){
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  cart.splice(i,1);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function updateTotals(){
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const subtotal = cart.reduce((s,it)=> s + it.price*it.qty, 0);
+  const gst = Math.round(subtotal * 0.05);
+  const total = subtotal + gst;
+  document.getElementById('subtotal').innerText = '₹' + subtotal;
+  document.getElementById('gst').innerText = '₹' + gst;
+  document.getElementById('total').innerText = '₹' + total;
+
+  if(cart.length === 0) document.getElementById('checkoutBtn').classList.add('opacity-50','pointer-events-none');
+  else document.getElementById('checkoutBtn').classList.remove('opacity-50','pointer-events-none');
+}
+
+renderCart();
+</script>
+
+</body>
+</html>

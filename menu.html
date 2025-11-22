@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Smart Bite | Menu</title>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="assets/logo.png" alt="Smart Canteen Logo" class="w-10 h-10 rounded-md" />
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold text-gray-800">Smart Bite</h1>
+          <p class="text-xs text-gray-500">Browse and add items to your cart</p>
+        </div>
+      </div>
+      <nav class="flex items-center gap-4 text-sm text-gray-700">
+        <a href="menu.html" class="font-semibold text-orange-600">Menu</a>
+        <a href="cart.html" class="hover:text-gray-900">Cart</a>
+        <a href="index.html" class="hover:text-gray-900">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto px-4 md:px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-semibold text-gray-900">Menu</h2>
+        <p class="text-sm text-gray-600">Choose from our freshly prepared items.</p>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div id="filters" class="flex flex-wrap gap-3 mb-6">
+      <button data-cat="All" class="px-4 py-1.5 bg-orange-500 text-white text-sm rounded-full shadow-sm">
+        All
+      </button>
+      <button data-cat="Beverages" class="px-4 py-1.5 bg-white border border-gray-300 text-sm rounded-full">
+        Beverages
+      </button>
+      <button data-cat="Snacks" class="px-4 py-1.5 bg-white border border-gray-300 text-sm rounded-full">
+        Snacks
+      </button>
+      <button data-cat="Meals" class="px-4 py-1.5 bg-white border border-gray-300 text-sm rounded-full">
+        Meals
+      </button>
+      <button data-cat="Desserts" class="px-4 py-1.5 bg-white border border-gray-300 text-sm rounded-full">
+        Desserts
+      </button>
+    </div>
+
+    <!-- GRID -->
+    <section id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+  </main>
+
+<script>
+const MENU = [
+  // Beverages
+  { id:'tea', name:'Tea', price:10, cat:'Beverages', desc:'Hot masala tea with fresh ginger', img:'assets/tea.png' },
+  { id:'coffee', name:'Coffee', price:15, cat:'Beverages', desc:'Fresh brewed coffee', img:'assets/coffee.png' },
+  { id:'cold-drink', name:'Cold Drink', price:20, cat:'Beverages', desc:'Chilled soft drink', img:'assets/colddrinks.png' },
+  { id:'cold-coffee', name:'Cold Coffee', price:40, cat:'Beverages', desc:'Iced cold coffee', img:'assets/cld cfe.png' },
+
+  // Snacks
+  { id:'sandwich', name:'Sandwich', price:40, cat:'Snacks', desc:'Veg grilled sandwich with cheese', img:'assets/sandwhich.png' },
+  { id:'samosa', name:'Samosa', price:20, cat:'Snacks', desc:'Crispy potato samosa (2 pcs)', img:'assets/samosa.png' },
+  { id:'vada-pav', name:'Vada Pav', price:25, cat:'Snacks', desc:'Mumbai style vada pav with chutney', img:'assets/vadapav.png' },
+  { id:'pakora', name:'Pakora', price:30, cat:'Snacks', desc:'Mixed veg pakora with chutney', img:'assets/pakora.png' },
+
+  // Meals
+  { id:'thali', name:'Thali', price:80, cat:'Meals', desc:'Complete meal with roti, rice, dal, sabzi', img:'assets/thali.png' },
+  { id:'biryani', name:'Biryani', price:70, cat:'Meals', desc:'Aromatic veg biryani with raita', img:'assets/biryani.png' },
+  { id:'paratha', name:'Paratha', price:30, cat:'Meals', desc:'Stuffed paratha with curd and pickle', img:'assets/paratha.png' },
+
+  // Desserts
+  { id:'icecream', name:'Ice Cream', price:30, cat:'Desserts', desc:'Vanilla or chocolate ice cream', img:'assets/icecream.png' },
+  { id:'gulab', name:'Gulab Jamun', price:25, cat:'Desserts', desc:'Sweet gulab jamun (2 pcs)', img:'assets/gulab.png' }
+];
+
+const grid = document.getElementById('grid');
+const filters = document.getElementById('filters');
+
+function render(items){
+  grid.innerHTML = items.map(it => `
+    <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+      <div class="relative">
+        <img src="${it.img}" alt="${it.name}" class="w-full h-40 object-cover">
+        <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          ₹${it.price}
+        </div>
+      </div>
+      <div class="p-4 flex flex-col flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">${it.name}</h3>
+        <p class="text-sm text-gray-600 mb-3 flex-1">${it.desc}</p>
+        <button
+          onclick="addToCart('${it.id}')"
+          class="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2.5 rounded-lg"
+        >
+          Add to Cart
+        </button>
+      </div>
+    </article>
+  `).join('');
+}
+
+render(MENU);
+
+filters.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#filters button').forEach(b=>{
+    b.classList.remove('bg-orange-500','text-white','border-transparent');
+    b.classList.add('bg-white','border','border-gray-300','text-gray-700');
+  });
+  btn.classList.remove('bg-white','border-gray-300','text-gray-700');
+  btn.classList.add('bg-orange-500','text-white','border-transparent');
+
+  const cat = btn.dataset.cat;
+  render(cat === 'All' ? MENU : MENU.filter(i => i.cat === cat));
+});
+
+function addToCart(id){
+  const item = MENU.find(m => m.id === id);
+  if(!item) return;
+
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const existing = cart.find(c => c.id === id);
+  if(existing) existing.qty++;
+  else cart.push({ id:item.id, name:item.name, price:item.price, qty:1, img:item.img });
+
+  localStorage.setItem('cart', JSON.stringify(cart));
+
+  const t = document.createElement('div');
+  t.textContent = item.name + ' added to cart';
+  t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white text-sm px-4 py-2 rounded-md';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),1500);
+}
+</script>
+</body>
+</html>

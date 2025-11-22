@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Smart Bite | Payment</title>
+</head>
+<body class="bg-[#F7F9FB]">
+
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="/assets/logo.png " alt="logo" class="w-10 h-10 rounded-md" />
+        <span class="text-xl font-semibold text-gray-800">Smart Bite</span>
+      </div>
+      <nav class="text-gray-700">
+        <a href="menu.html" class="mr-4">Menu</a>
+        <a href="index.html">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-10">
+    <div class="bg-white p-6 rounded-2xl shadow-md">
+      <h2 class="text-2xl font-bold mb-4">Complete Payment</h2>
+
+      <div id="summary" class="mb-6">
+        <div class="flex justify-between mb-2">
+          <span>Subtotal</span><span id="s_sub">₹0</span>
+        </div>
+        <div class="flex justify-between mb-2 text-gray-500">
+          <span>GST (5%)</span><span id="s_gst">₹0</span>
+        </div>
+        <div class="flex justify-between font-bold text-lg">
+          <span>Total</span><span id="s_total">₹0</span>
+        </div>
+      </div>
+
+      <h3 class="font-semibold mb-3">Choose Payment Method</h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <button onclick="placeOrder('Cash')" class="py-3 rounded-lg border border-gray-200 hover:bg-gray-50">Cash</button>
+        <button onclick="placeOrder('UPI')" class="py-3 rounded-lg border border-gray-200 hover:bg-gray-50">UPI</button>
+      </div>
+
+      <div id="confirmation" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+        <h4 class="font-bold text-lg">Order Confirmed</h4>
+        <p class="mt-2">Order ID: <span id="orderId" class="font-mono font-bold text-orange-600"></span></p>
+        <p class="mt-2 text-sm text-gray-700">Show this Order ID to the canteen staff.</p>
+        <div class="mt-4">
+          <a href="menu.html" class="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg">Back to Menu</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FIREBASE v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtsVenEUn1f1wcKUq6R5_9_028Mmnvozc",
+      authDomain: "smart-canteen-e2c54.firebaseapp.com",
+      databaseURL: "https://smart-canteen-e2c54-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "smart-canteen-e2c54",
+      storageBucket: "smart-canteen-e2c54.firebasestorage.app",
+      messagingSenderId: "758517185152",
+      appId: "1:758517185152:web:1a6242eacee41d41478465"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <script>
+    function loadSummary(){
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const subtotal = cart.reduce((s,i)=> s + i.price * i.qty, 0);
+      const gst = Math.round(subtotal * 0.05);
+      const total = subtotal + gst;
+      document.getElementById('s_sub').innerText = '₹' + subtotal;
+      document.getElementById('s_gst').innerText = '₹' + gst;
+      document.getElementById('s_total').innerText = '₹' + total;
+    }
+    loadSummary();
+
+    function generateOrderId(){
+      return 'ORD' + Date.now().toString().slice(-6) + Math.floor(Math.random()*900 + 100);
+    }
+
+    function placeOrder(method){
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      if(cart.length === 0){ alert('Cart is empty'); return; }
+
+      const phone = localStorage.getItem('phone') || 'Unknown';
+      const subtotal = cart.reduce((s,i)=> s + i.price * i.qty, 0);
+      const gst = Math.round(subtotal * 0.05);
+      const total = subtotal + gst;
+
+      const orderId = generateOrderId();
+      const orderData = {
+        orderId,
+        items: cart,
+        phone,
+        total,
+        paymentMethod: method,
+        status: 'pending',
+        timestamp: Date.now()
+      };
+
+      // Save order
+      db.ref('orders/' + orderId).set(orderData)
+      .then(() => {
+
+        // 🔥 UPDATE INVENTORY
+        orderData.items.forEach(item => {
+          db.ref("inventory/" + item.id).transaction(current => {
+            return (current || 0) + item.qty;
+          });
+        });
+
+        localStorage.removeItem('cart');
+
+        document.getElementById('orderId').innerText = orderId;
+        document.getElementById('confirmation').classList.remove('hidden');
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Failed to save order.');
+      });
+    }
+  </script>
+</body>
+</html>
