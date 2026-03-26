@@ -20,6 +20,14 @@ Smart Bite is a smart canteen management system designed to simplify food orderi
 <br>
 <u><b>🛠️ Tech Stack</b></u>
 <br>
+Frontend: HTML, CSS, JavaScript
+<br>
+Backend:  Firebase
+<br>
+Database:  Firebase
+<br>
+IoT Integration: Smart display system for order updates
+<br>
 Smart-Bite/
 │── frontend/
 │   ├── index.html
@@ -38,11 +46,5 @@ Smart-Bite/
 │   └── images/
 │
 │── README.md
-Frontend: HTML, CSS, JavaScript
-<br>
-Backend:  Firebase
-<br>
-Database:  Firebase
-<br>
-IoT Integration: Smart display system for order updates
+<pre>
 
