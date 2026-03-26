@@ -1,0 +1,125 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+/* ---------------- CONFIGURATION ---------------- */
+const char* WIFI_SSID = "EZ STAYS G(5)";
+const char* WIFI_PASSWORD = "welcome2ezstay";
+const char* FIREBASE_URL = "https://smart-canteen-e2c54-default-rtdb.asia-southeast1.firebasedatabase.app/iot/lastReady.json";
+
+// Define Pins
+#define BUZZER_PIN 15
+
+/* ---------------- LCD ---------------- */
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+uint64_t lastSeenTS = 0; 
+
+/* ---------- WIFI ---------- */
+void connectWiFi() {
+  Serial.print("Connecting");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(300);
+  }
+  Serial.println("\nWiFi Connected!");
+}
+
+/* ---------- LCD & BUZZER (Beep Twice) ---------- */
+void triggerAlert(String orderId) {
+  // 1. Update LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Order Ready:");
+  lcd.setCursor(0, 1);
+  lcd.print(orderId);
+
+  Serial.println("Beeping Twice...");
+
+  // 2. FIRST BEEP
+  digitalWrite(BUZZER_PIN, HIGH); 
+  delay(300);                     // Beep length
+  digitalWrite(BUZZER_PIN, LOW);
+  
+  delay(100);                     // Silence gap
+
+  // 3. SECOND BEEP
+  digitalWrite(BUZZER_PIN, HIGH); 
+  delay(300);                     // Beep length
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+/* ---------- FIREBASE CHECK ---------- */
+void checkFirebase() {
+  if (WiFi.status() != WL_CONNECTED) connectWiFi();
+
+  WiFiClientSecure client;
+  client.setInsecure(); 
+
+  HTTPClient http;
+  http.begin(client, FIREBASE_URL);
+  
+  int code = http.GET();
+
+  if (code != 200) {
+    Serial.print("GET FAILED: ");
+    Serial.println(http.errorToString(code));
+    http.end();
+    return;
+  }
+
+  String payload = http.getString();
+  http.end();
+
+  JsonDocument doc; 
+  DeserializationError err = deserializeJson(doc, payload);
+
+  if (err) {
+    Serial.println("JSON ERROR");
+    return;
+  }
+
+  String orderId = doc["orderId"] | "";
+  uint64_t ts = doc["ts"].as<uint64_t>(); 
+
+  if (orderId == "" || ts == 0) return;
+
+  if (ts > lastSeenTS) {
+    Serial.println("🔥 NEW ORDER DETECTED!");
+    lastSeenTS = ts;
+    triggerAlert(orderId); 
+  }
+}
+
+/* ---------- SETUP ---------- */
+void setup() {
+  Serial.begin(115200);
+
+  // Initialize Buzzer
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW); 
+
+  // Initialize I2C
+  Wire.begin(21, 22); 
+  lcd.init();
+  lcd.backlight();
+  
+  lcd.setCursor(0, 0);
+  lcd.print("Smart Bite");
+  delay(1000);
+
+  connectWiFi();
+
+  lcd.clear();
+  lcd.print("Waiting orders");
+}
+
+/* ---------- LOOP ---------- */
+void loop() {
+  checkFirebase();
+  delay(3000);
+}
