@@ -1,4 +1,4 @@
-<u><b>🍽️ Smart Bite – Smart Canteen Management System</b></u>
+<pre><u><b>🍽️ Smart Bite – Smart Canteen Management System</b></u>
 <hr>
 <u><b>📌 Overview:</b></u>
 <br>
@@ -29,22 +29,22 @@ Database:  Firebase
 IoT Integration: Smart display system for order updates
 <br>
 Smart-Bite/
-│── frontend/
-│   ├── index.html
-│   ├── menu.html
-│   ├── cart.html
-│   └── styles/
-│
-│── backend/
-│   ├── server.js / Main.java
-│   └── routes/
-│
-│── database/
-│   └── schema.sql / config.js
-│
-│── assets/
-│   └── images/
-│
+│── frontend/<br>
+│   ├── index.html/<br>
+│   ├── menu.html/<br>
+│   ├── cart.html/<br>
+│   └── styles//<br>
+│/<br>
+│── backend//<br>
+│   ├── server.js / Main.java/<br>
+│   └── routes//<br>
+│/<br>
+│── database//<br>
+│   └── schema.sql / config.js/<br>
+│/<br>
+│── assets//<br>
+│   └── images//<br>
+│/<br>
 │── README.md
-<pre>
+</pre>
 
